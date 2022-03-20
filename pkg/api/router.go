@@ -18,7 +18,7 @@ func NewRouter(ctx context.Context, logger util.Logger) *mux.Router {
 
 	// endpoints
 
-	r.HandleFunc("/api/ingest", ingest(ctx, logger)).Schemes("ws")
+	r.HandleFunc("/api/ingest", ingest(ctx, logger)).Schemes("http", "ws")
 
 	r.HandleFunc("/api/entity", createEntity(ctx, logger)).Methods(http.MethodPost).Schemes("http")
 	r.HandleFunc("/api/entity/{id}", readEntity(ctx, logger)).Methods(http.MethodGet).Schemes("http")

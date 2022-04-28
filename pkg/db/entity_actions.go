@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"regexp"
 	"time"
 
 	"github.com/archi-dex/ingester/pkg/util"
@@ -15,62 +16,85 @@ func getCol() *mongo.Collection {
 	return client.Database(opts.DbName).Collection(opts.DbCollection)
 }
 
-func CreateEntity(ctx context.Context, entity Entity) error {
-	col := getCol()
-
-	_, err := col.InsertOne(ctx, entity)
-	if err != nil {
-		return err
+func GetEntity(ctx context.Context, id string) (*Entity, error) {
+	if id == "" {
+		return nil, ErrorInvalidEntity.Tracef("must specify id")
 	}
 
-	return nil
-}
-
-func ReadEntity(ctx context.Context, id string) (*Entity, error) {
-	col := getCol()
-
 	var entity Entity
-	if err := col.FindOne(ctx, bson.D{{Key: "_id", Value: id}}).Decode(&entity); err != nil {
+	if err := getCol().FindOne(ctx, bson.M{"_id": id}).Decode(&entity); err != nil {
 		return nil, err
 	}
 
 	return &entity, nil
 }
 
-func UpdateEntity(ctx context.Context, id string, attributes map[string]string) (*Entity, error) {
-	col := getCol()
+func CreateEntity(ctx context.Context, path string, attributes map[string]string) (*Entity, error) {
+	if path == "" || attributes == nil {
+		return nil, ErrorInvalidEntity.Tracef("must specify attributes")
+	}
 
-	filter := bson.D{{Key: "_id", Value: id}}
-	update := bson.D{{Key: "$set", Value: bson.D{
-		{Key: "attributes", Value: attributes},
-		{Key: "updated_at", Value: time.Now().UTC()},
-	}}}
+	r := regexp.MustCompile(`\/`)
+	r.Split(path[1:len(path)-1], -1)
 
-	var result Entity
-	returnType := options.After
-	options := &options.FindOneAndUpdateOptions{ReturnDocument: &returnType}
-	if err := col.FindOneAndUpdate(ctx, filter, update, options).Decode(&result); err != nil {
+	entity := NewEntity(path, attributes)
+	var result *mongo.InsertOneResult
+	var err error
+	if result, err = getCol().InsertOne(ctx, entity); err != nil {
 		return nil, err
 	}
 
-	return &result, nil
+	return GetEntity(ctx, (result.InsertedID).(string))
+}
+
+func UpdateEntity(ctx context.Context, id string, attributes map[string]string) (*Entity, error) {
+	if id == "" || attributes == nil {
+		return nil, ErrorInvalidEntity.Tracef("must specify both id and attributes")
+	}
+
+	filter := bson.M{"_id": id}
+	update := bson.M{"$set": bson.M{
+		"attributes": attributes,
+		"updated_at": time.Now().UTC(),
+	}}
+
+	returnType := options.After
+	opts := &options.FindOneAndUpdateOptions{ReturnDocument: &returnType}
+	if err := getCol().FindOneAndUpdate(ctx, filter, update, opts).Err(); err != nil {
+		return nil, err
+	}
+
+	return GetEntity(ctx, id)
 }
 
 func DeleteEntity(ctx context.Context, id string) error {
-	col := getCol()
+	if id == "" {
+		return ErrorInvalidEntity.Tracef("must specify id")
+	}
 
-	filter := bson.D{{Key: "_id", Value: id}}
-	return col.FindOneAndDelete(ctx, filter).Err()
+	filter := bson.M{"_id": id}
+	return getCol().FindOneAndDelete(ctx, filter).Err()
 }
 
-func ListEntities(ctx context.Context, filter util.Map) ([]*Entity, error) {
-	return nil, nil
+func ListEntities(ctx context.Context, filter interface{}) ([]*Entity, error) {
+	cursor, err := getCol().Find(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+
+	var results []*Entity
+	if err := cursor.All(ctx, &results); err != nil {
+		return nil, err
+	}
+
+	return results, nil
 }
 
-func ListEntityRoot(ctx context.Context, filter util.Map) ([]*Entity, error) {
-	return nil, nil
+func ListEntityRoot(ctx context.Context) ([]*Entity, error) {
+	filter := bson.M{"path": bson.M{"$regex": "^/?[^/]+/$"}}
+	return ListEntities(ctx, filter)
 }
 
-func ListEntityChildren(ctx context.Context, id string, filter util.Map) ([]*Entity, error) {
+func ListEntityChildren(ctx context.Context, id string, filter interface{}) ([]*Entity, error) {
 	return nil, nil
 }

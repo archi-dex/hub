@@ -32,12 +32,12 @@ func NewConnection(ctx context.Context, logger util.Logger) (*mongo.Client, erro
 
 	logger.Debugw("connecting to db", "uri", obscuredUri)
 
-	newClient, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
+	var err error
+	client, err = mongo.Connect(ctx, options.Client().ApplyURI(uri))
 	if err != nil {
 		return nil, ErrorConnecting.Trace(err).Add("server", obscuredUri)
 	}
 
-	client = newClient
 	return client, nil
 }
 

@@ -10,6 +10,7 @@ import (
 
 func NewRouter(ctx context.Context, logger util.Logger) *mux.Router {
 	r := mux.NewRouter()
+	r.StrictSlash(true)
 
 	// middleware
 

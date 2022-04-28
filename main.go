@@ -8,6 +8,8 @@ import (
 	"github.com/archi-dex/ingester/pkg/db"
 	"github.com/archi-dex/ingester/pkg/util"
 	"github.com/spf13/cobra"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 var cmd = &cobra.Command{
@@ -27,7 +29,7 @@ func main() {
 func run(cmd *cobra.Command, args []string) {
 	opts := util.InitOptions(cmd)
 	logger := util.InitLogger(opts.Debug)
-	ctx := context.TODO()
+	ctx := context.Background()
 
 	client, err := db.NewConnection(ctx, logger)
 	if err != nil {
@@ -40,7 +42,17 @@ func run(cmd *cobra.Command, args []string) {
 		logger.Fatalw("error pinging database", "err", err)
 	}
 
+	client.
+		Database(opts.DbName).
+		Collection(opts.DbCollection).
+		Indexes().
+		CreateMany(ctx, []mongo.IndexModel{
+			{Keys: bson.M{"dir": 1}},
+			{Keys: bson.M{"base": 1}},
+		})
+
 	r := api.NewRouter(ctx, logger)
+	logger.Infow("server ready", "url", "http://localhost:8080")
 	if err := http.ListenAndServe(":8080", r); err != nil {
 		logger.Fatalw("error during server runtime", "err", err)
 	}

@@ -2,21 +2,15 @@ package db
 
 import (
 	"encoding/json"
-	"path"
+	"path/filepath"
 	"time"
 
 	"github.com/archi-dex/ingester/pkg/util"
 	trace "github.com/hans-m-song/go-stacktrace"
 )
 
-type EntityType string
-
-const (
-	FileEntityType   EntityType = "FILE"
-	FolderEntityType EntityType = "FOLDER"
-)
-
 var (
+	ErrorInvalidEntity   = trace.New("ERROR_INVALID_ENTITY")
 	ErrorMarshalEntity   = trace.New("ERROR_MARSHAL_ENTITY")
 	ErrorUnmarshalEntity = trace.New("ERROR_UNMARSHAL_ENTITY")
 )
@@ -25,40 +19,40 @@ type EntityMeta struct {
 	Indicies []string
 }
 
+type EntityAttributes struct {
+	Path       string            `bson:"path"       json:"path"`
+	Attributes map[string]string `bson:"attributes" json:"attributes"`
+}
+
+func EntityAttributesFromBytes(input []byte) (*EntityAttributes, error) {
+	var parsed EntityAttributes
+	if err := json.Unmarshal(input, &parsed); err != nil {
+		return nil, ErrorUnmarshalEntity.Trace(err).Add("input", input)
+	}
+
+	return &parsed, nil
+}
+
 type Entity struct {
 	ID         string            `bson:"_id"        json:"_id,omitempty"`
-	Path       string            `bson:"path"       json:"path"`
-	Type       EntityType        `bson:"type"       json:"type"`
+	Dir        string            `bson:"dir"        json:"dir"`
+	Base       string            `bson:"base"       json:"base"`
 	Attributes map[string]string `bson:"attributes" json:"attributes"`
 	CreatedAt  time.Time         `bson:"created_at" json:"created_at"`
 	UpdatedAt  time.Time         `bson:"updated_at" json:"updated_at"`
 }
 
-func getEntityType(filepath string) EntityType {
-	if path.Ext(filepath) == "" {
-		return FolderEntityType
-	}
-
-	return FileEntityType
-}
-
 func NewEntity(path string, attributes map[string]string) *Entity {
 	now := time.Now().UTC()
+	dir := filepath.Dir(path)
+	base := filepath.Base(path)
+
 	return &Entity{
-		ID:         util.NewHash(path),
-		Path:       path,
-		Type:       getEntityType(path),
+		ID:         util.NewHash(base),
+		Dir:        dir,
+		Base:       base,
 		Attributes: attributes,
 		CreatedAt:  now,
 		UpdatedAt:  now,
 	}
-}
-
-func EntityFromBytes(input []byte) (*Entity, error) {
-	var parsed Entity
-	if err := json.Unmarshal(input, &parsed); err != nil {
-		return nil, ErrorUnmarshalEntity.Trace(err).Add("input", input)
-	}
-
-	return NewEntity(parsed.Path, parsed.Attributes), nil
 }

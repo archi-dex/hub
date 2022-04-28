@@ -1,0 +1,25 @@
+version: '3'
+
+services:
+  db:
+    image: healthcheck/mongo
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${DB_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${DB_PASS}
+    ports:
+      - ${DB_PORT}:27017
+    volumes:
+      - db-cache:/data/db
+
+  dbui:
+    image: mongo-express
+    environment:
+      ME_CONFIG_MONGODB_URL: mongodb://${DB_USER}:${DB_PASS}@db:${DB_PORT}
+    ports:
+      - 8081:8081
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  db-cache:

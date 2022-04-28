@@ -16,6 +16,6 @@ func deleteIndex(ctx context.Context, logger util.Logger) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) { db.DeleteIndex(ctx, logger) }
 }
 
-func listIndicies(ctx context.Context, logger util.Logger) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) { db.ListIndicies(ctx, logger) }
+func listIndexes(ctx context.Context, logger util.Logger) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) { db.ListIndexes(ctx, logger) }
 }

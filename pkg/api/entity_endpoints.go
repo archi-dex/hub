@@ -2,13 +2,13 @@ package api
 
 import (
 	"context"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 
 	"github.com/archi-dex/ingester/pkg/db"
 	"github.com/archi-dex/ingester/pkg/util"
 	"github.com/gorilla/mux"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -136,22 +136,13 @@ func deleteEntity(ctx context.Context, logger util.Logger) http.HandlerFunc {
 
 func listEntities(ctx context.Context, logger util.Logger) http.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request) {
-		path, ok := mux.Vars(r)["path"]
 		var entities []*db.Entity
 		var err error
 		var detail string
 
-		switch {
-		case path == "root" && ok:
-			entities, err = db.ListEntityRoot(ctx)
-			detail = "error listing entity root"
-		case ok:
-			entities, err = db.ListEntityChildren(ctx, path, r.URL.Query())
-			detail = fmt.Sprintf("error listing entity children '%s'", path)
-		default:
-			entities, err = db.ListEntities(ctx, r.URL.Query())
-			detail = "error listing entities"
-		}
+		// TODO support filter options
+		entities, err = db.ListEntities(ctx, bson.D{})
+		detail = "error listing entities"
 
 		if err == mongo.ErrNoDocuments || entities == nil {
 			logger.Errorw(detail + " - none found")

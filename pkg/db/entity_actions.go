@@ -89,12 +89,3 @@ func ListEntities(ctx context.Context, filter interface{}) ([]*Entity, error) {
 
 	return results, nil
 }
-
-func ListEntityRoot(ctx context.Context) ([]*Entity, error) {
-	filter := bson.M{"path": bson.M{"$regex": "^/?[^/]+/$"}}
-	return ListEntities(ctx, filter)
-}
-
-func ListEntityChildren(ctx context.Context, id string, filter interface{}) ([]*Entity, error) {
-	return nil, nil
-}

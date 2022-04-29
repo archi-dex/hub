@@ -5,16 +5,10 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/archi-dex/ingester/pkg/util"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
-
-func getCol() *mongo.Collection {
-	opts := util.GetOptions()
-	return client.Database(opts.DbName).Collection(opts.DbCollection)
-}
 
 func GetEntity(ctx context.Context, id string) (*Entity, error) {
 	if id == "" {

@@ -12,12 +12,21 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
+const (
+	EntityCollectionName = "entities"
+)
+
 var (
 	client            *mongo.Client
 	ErrorConnecting   = trace.New("ERROR_CONNECTING")
 	ErrorNotConnected = trace.New("ERROR_NOT_CONNECTED")
 	ErrorPinging      = trace.New("ERROR_PINGING")
 )
+
+func getCol() *mongo.Collection {
+	opts := util.GetOptions()
+	return client.Database(opts.DbName).Collection(EntityCollectionName)
+}
 
 func NewConnection(ctx context.Context, logger util.Logger) (*mongo.Client, error) {
 	if client != nil {

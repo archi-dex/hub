@@ -27,9 +27,9 @@ func NewRouter(ctx context.Context, logger util.Logger) *mux.Router {
 	r.HandleFunc("/api/entities/{id}", deleteEntity(ctx, logger)).Methods(http.MethodDelete).Schemes("http")
 	r.HandleFunc("/api/entities", listEntities(ctx, logger)).Methods(http.MethodGet).Schemes("http")
 
-	r.HandleFunc("/api/index", createIndex(ctx, logger)).Methods(http.MethodPost).Schemes("http")
-	r.HandleFunc("/api/index/{id}", deleteIndex(ctx, logger)).Methods(http.MethodDelete).Schemes("http")
-	r.HandleFunc("/api/index", listIndexes(ctx, logger)).Methods(http.MethodGet).Schemes("http")
+	r.HandleFunc("/api/facets", createFacet(ctx, logger)).Methods(http.MethodPost).Schemes("http")
+	r.HandleFunc("/api/facets/{id}", deleteFacet(ctx, logger)).Methods(http.MethodDelete).Schemes("http")
+	r.HandleFunc("/api/facets", listFacets(ctx, logger)).Methods(http.MethodGet).Schemes("http")
 
 	return r
 }

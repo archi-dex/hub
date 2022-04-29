@@ -44,7 +44,7 @@ func run(cmd *cobra.Command, args []string) {
 
 	client.
 		Database(opts.DbName).
-		Collection(opts.DbCollection).
+		Collection(db.EntityCollectionName).
 		Indexes().
 		CreateMany(ctx, []mongo.IndexModel{
 			{Keys: bson.M{"dir": 1}},

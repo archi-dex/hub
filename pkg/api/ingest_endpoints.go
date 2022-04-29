@@ -13,8 +13,8 @@ import (
 var upgrader = websocket.Upgrader{}
 
 type inputPayload struct {
-	Filepath string            `json:"filepath"`
-	Data     map[string]string `json:"data"`
+	Filepath string                 `json:"filepath"`
+	Data     map[string]interface{} `json:"data"`
 }
 
 func ingest(ctx context.Context, logger util.Logger) http.HandlerFunc {

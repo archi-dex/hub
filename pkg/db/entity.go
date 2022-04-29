@@ -20,8 +20,8 @@ type EntityMeta struct {
 }
 
 type EntityAttributes struct {
-	Path       string            `bson:"path"       json:"path"`
-	Attributes map[string]string `bson:"attributes" json:"attributes"`
+	Path       string                 `bson:"path"       json:"path"`
+	Attributes map[string]interface{} `bson:"attributes" json:"attributes"`
 }
 
 func EntityAttributesFromBytes(input []byte) (*EntityAttributes, error) {
@@ -34,15 +34,15 @@ func EntityAttributesFromBytes(input []byte) (*EntityAttributes, error) {
 }
 
 type Entity struct {
-	ID         string            `bson:"_id"        json:"_id,omitempty"`
-	Dir        string            `bson:"dir"        json:"dir"`
-	Base       string            `bson:"base"       json:"base"`
-	Attributes map[string]string `bson:"attributes" json:"attributes"`
-	CreatedAt  time.Time         `bson:"created_at" json:"created_at"`
-	UpdatedAt  time.Time         `bson:"updated_at" json:"updated_at"`
+	ID         string                 `bson:"_id"        json:"_id,omitempty"`
+	Dir        string                 `bson:"dir"        json:"dir"`
+	Base       string                 `bson:"base"       json:"base"`
+	Attributes map[string]interface{} `bson:"attributes" json:"attributes"`
+	CreatedAt  time.Time              `bson:"created_at" json:"created_at"`
+	UpdatedAt  time.Time              `bson:"updated_at" json:"updated_at"`
 }
 
-func NewEntity(path string, attributes map[string]string) *Entity {
+func NewEntity(path string, attributes map[string]interface{}) *Entity {
 	now := time.Now().UTC()
 	dir := filepath.Dir(path)
 	base := filepath.Base(path)

@@ -29,7 +29,7 @@ func GetEntity(ctx context.Context, id string) (*Entity, error) {
 	return &entity, nil
 }
 
-func CreateEntity(ctx context.Context, path string, attributes map[string]string) (*Entity, error) {
+func CreateEntity(ctx context.Context, path string, attributes map[string]interface{}) (*Entity, error) {
 	if path == "" || attributes == nil {
 		return nil, ErrorInvalidEntity.Tracef("must specify attributes")
 	}
@@ -47,7 +47,7 @@ func CreateEntity(ctx context.Context, path string, attributes map[string]string
 	return GetEntity(ctx, (result.InsertedID).(string))
 }
 
-func UpdateEntity(ctx context.Context, id string, attributes map[string]string) (*Entity, error) {
+func UpdateEntity(ctx context.Context, id string, attributes map[string]interface{}) (*Entity, error) {
 	if id == "" || attributes == nil {
 		return nil, ErrorInvalidEntity.Tracef("must specify both id and attributes")
 	}
